@@ -4,6 +4,8 @@ import { AuthProvider, RequireAuth } from "./auth/AuthContext";
 import Login from "./pages/Login";
 import Upload from "./pages/Upload";
 import Leaderboard from "./pages/Leaderboard";
+import Submissions from "./pages/Submissions";
+import Admin from "./pages/Admin";
 
 function App() {
   return (
@@ -24,6 +26,22 @@ function App() {
             element={
               <RequireAuth>
                 <Leaderboard />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/submissions"
+            element={
+              <RequireAuth>
+                <Submissions />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <RequireAuth>
+                <Admin />
               </RequireAuth>
             }
           />

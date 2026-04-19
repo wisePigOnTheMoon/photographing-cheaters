@@ -6,6 +6,8 @@ import { apiUrl } from "../api";
 export default function Upload() {
   const { token } = useAuth();
   const [file, setFile] = useState<File | null>(null);
+  const [participantName, setParticipantName] = useState("");
+  const [participantId, setParticipantId] = useState("");
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{
@@ -27,6 +29,10 @@ export default function Upload() {
       setMessage({ kind: "error", text: "Please choose a photo." });
       return;
     }
+    if (!participantName.trim()) {
+      setMessage({ kind: "error", text: "Please provide participant name." });
+      return;
+    }
     if (!reason.trim()) {
       setMessage({ kind: "error", text: "Please provide a reason for DQ." });
       return;
@@ -40,6 +46,10 @@ export default function Upload() {
     try {
       const form = new FormData();
       form.append("photo", file);
+      form.append("participantName", participantName.trim());
+      if (participantId.trim()) {
+        form.append("participantId", participantId.trim());
+      }
       form.append("reason", reason.trim());
 
       const res = await fetch(apiUrl("/api/submissions"), {
@@ -58,6 +68,8 @@ export default function Upload() {
         text: `Submitted! Your DQ count is now ${data.score}.`,
       });
       setFile(null);
+      setParticipantName("");
+      setParticipantId("");
       setReason("");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err: any) {
@@ -95,6 +107,40 @@ export default function Upload() {
                 <p className="text-gray-400 text-sm mt-1">JPG, PNG, HEIC</p>
               </>
             )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="participantName"
+              className="block text-lg font-semibold text-gray-700 mb-2"
+            >
+              Participant Name
+            </label>
+            <input
+              id="participantName"
+              type="text"
+              value={participantName}
+              onChange={(e) => setParticipantName(e.target.value)}
+              placeholder="Enter participant's name"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="participantId"
+              className="block text-lg font-semibold text-gray-700 mb-2"
+            >
+              Participant ID (Optional)
+            </label>
+            <input
+              id="participantId"
+              type="text"
+              value={participantId}
+              onChange={(e) => setParticipantId(e.target.value)}
+              placeholder="Enter participant ID (optional)"
+              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+            />
           </div>
 
           <div>

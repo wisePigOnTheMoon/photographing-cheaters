@@ -1,10 +1,35 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { apiUrl } from "../api";
 
 export default function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!token) {
+      setIsAdmin(false);
+      return;
+    }
+
+    fetch(apiUrl("/api/admin/admins"), {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => {
+        if (cancelled) return;
+        setIsAdmin(res.ok);
+      })
+      .catch(() => {
+        if (!cancelled) setIsAdmin(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const handleLogout = () => {
     logout();
@@ -28,6 +53,14 @@ export default function Navbar() {
           <NavLink to="/leaderboard" className={linkClass}>
             Leaderboard
           </NavLink>
+          <NavLink to="/submissions" className={linkClass}>
+            Submissions
+          </NavLink>
+          {isAdmin && (
+            <NavLink to="/admin" className={linkClass}>
+              Admin
+            </NavLink>
+          )}
         </div>
         {user && (
           <div className="flex items-center gap-3">
