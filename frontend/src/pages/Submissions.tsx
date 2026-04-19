@@ -22,7 +22,7 @@ type SortColumn =
   | "createdAt";
 
 export default function Submissions() {
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const [submissions, setSubmissions] = useState<Submission[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sortColumn, setSortColumn] = useState<SortColumn>("createdAt");

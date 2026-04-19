@@ -11,16 +11,16 @@ interface LeaderboardEntry {
   score: number;
 }
 
-interface Admin {
+interface AdminUser {
   _id?: string;
   email: string;
   addedAt?: string;
 }
 
 export default function Admin() {
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null);
-  const [admins, setAdmins] = useState<Admin[] | null>(null);
+  const [admins, setAdmins] = useState<AdminUser[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<{
     kind: "success" | "error";
@@ -72,7 +72,7 @@ export default function Admin() {
         }
         return res.json();
       })
-      .then((data: Admin[]) => {
+      .then((data: AdminUser[]) => {
         if (!cancelled) {
           setIsAdmin(true);
           setAdmins(data);
