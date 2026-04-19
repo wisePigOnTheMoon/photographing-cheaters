@@ -293,6 +293,39 @@ app.delete("/api/admin/leaderboard", requireAdmin, async (req, res) => {
   }
 });
 
+// POST /api/admin/users - add or update user with name, email, and score
+app.post("/api/admin/users", requireAdmin, async (req, res) => {
+  try {
+    const { name, email, score } = req.body;
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: "Name required" });
+    }
+    if (!email || !email.trim()) {
+      return res.status(400).json({ error: "Email required" });
+    }
+    if (typeof score !== "number" || score < 0) {
+      return res.status(400).json({ error: "Invalid score" });
+    }
+    const result = await users.findOneAndUpdate(
+      { email: email.trim() },
+      {
+        $set: {
+          name: name.trim(),
+          score,
+        },
+        $setOnInsert: {
+          email: email.trim(),
+        },
+      },
+      { upsert: true, returnDocument: "after" }
+    );
+    res.json({ ok: true, user: result });
+  } catch (err) {
+    console.error("Add user error:", err);
+    res.status(500).json({ error: "Failed to add user" });
+  }
+});
+
 // PUT /api/admin/users/:email - update user score
 app.put("/api/admin/users/:email", requireAdmin, async (req, res) => {
   try {

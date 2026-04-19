@@ -31,6 +31,9 @@ export default function Admin() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserScore, setNewUserScore] = useState(0);
 
   // Load leaderboard and admins
   useEffect(() => {
@@ -200,6 +203,51 @@ export default function Admin() {
     }
   };
 
+  const handleAddUser = async () => {
+    if (!token) return;
+    if (!newUserName.trim() || !newUserEmail.trim()) {
+      setMessage({ kind: "error", text: "Name and email are required" });
+      return;
+    }
+    setMessage(null);
+
+    try {
+      const res = await fetch(apiUrl("/api/admin/users"), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: newUserName.trim(),
+          email: newUserEmail.trim(),
+          score: newUserScore,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to add user");
+      }
+
+      // Refresh the leaderboard
+      const leaderboardRes = await fetch(apiUrl("/api/leaderboard"));
+      if (!leaderboardRes.ok) throw new Error("Failed to refresh leaderboard");
+      const data = await leaderboardRes.json();
+      setEntries(data);
+
+      setMessage({ kind: "success", text: "User added successfully" });
+      setNewUserName("");
+      setNewUserEmail("");
+      setNewUserScore(0);
+    } catch (err: any) {
+      setMessage({
+        kind: "error",
+        text: err.message || "Failed to add user",
+      });
+    }
+  };
+
   const handleAddAdmin = async (email: string) => {
     if (!token) return;
     setMessage(null);
@@ -290,12 +338,66 @@ export default function Admin() {
           <h2 className="text-2xl font-bold mb-4 text-gray-900">
             Leaderboard Controls
           </h2>
-          <button
-            onClick={handleClearLeaderboard}
-            className="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors"
-          >
-            Clear Entire Leaderboard
-          </button>
+          <div className="mb-6">
+            <button
+              onClick={handleClearLeaderboard}
+              className="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors"
+            >
+              Clear Entire Leaderboard
+            </button>
+          </div>
+
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              Add User to Leaderboard
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={newUserName}
+                  onChange={(e) => setNewUserName(e.target.value)}
+                  placeholder="Full Name"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                  placeholder="user@example.com"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  DQ Count
+                </label>
+                <input
+                  type="number"
+                  value={newUserScore}
+                  onChange={(e) =>
+                    setNewUserScore(Math.max(0, parseInt(e.target.value) || 0))
+                  }
+                  min="0"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleAddUser}
+              className="px-6 py-2 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              Add User
+            </button>
+          </div>
         </div>
 
         {/* Admin Management Section */}
